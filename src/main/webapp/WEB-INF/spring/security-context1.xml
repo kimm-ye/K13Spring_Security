@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd">
+	
+	<!--  
+	스프링 설정파일을 생성한 후 security 네임 스페이스를 추가한다.
+	xmlns:security="" 항목이 있는지 확인한다. (없으면 security란 항목을 만들수 없다)
+	만약 파일 생성시 체크를 잊었다면 아래에 Namespace탭을 눌러 추가하면 된다.
+	-->
+	<!--  
+	스프링 시큐리티 1단계 : 기본페이지 사용하기
+	-->
+	<security:http>
+		<!--  
+		로그인을 통해 특정 권한을 획득해야 해당 요청명으로 접근할 수 있다는 설정으로
+		pattern : 요청명을 기술한다.
+		access : 획득해야 할 권한명을 기술한다.
+		만약 해당 권한이 없다면 경로에 접근하기 전에 인터셉트 당한다.
+		-->
+		<security:intercept-url pattern="/security1-1/**" access="hasRole('USER')" /><!-- USER라는 권한일때만 접근가능하다. -->
+		<!-- 권한없이 누구나 접근 가능한 경로를 설정한다. 디폴트로 항상 들어가야 한다. -->
+		<security:intercept-url pattern="/**" access="permitAll" /><!-- 넓은 영역이 아래, 좁은 영역이 위에 (exception처럼).. 모든 영역은 사용가능하지만, /security1-1/** 때만 USER 사용가능하다는 의미-->
+			
+		<!-- 로그인 폼과 로그아웃을 기본설정 그대로 사용한다. -->
+		<security:form-login />
+		<security:logout/>
+	</security:http>
+	<!-- 회원인증(권한설정)을 위한 엘리먼트 -->
+	<security:authentication-manager>
+		<security:authentication-provider>
+			<security:user-service>
+				<!-- 
+				USER권한을 획득하기 위한 아이디/패스워드를 설정한다.
+				권한명에 "ROLE_"접두어는 항상 있어야 한다.(시큐리티의 규칙)
+				 -->
+				<security:user name="kosmo" password="1234" authorities="ROLE_USER"/> <!-- name, password를 통해 authorities="ROLE_USER"로 권한명을 설정하고 이건 access="hasRole('USER')"와 매칭된다.  -->
+			</security:user-service>			
+		</security:authentication-provider>
+	</security:authentication-manager>
+		
+
+
+</beans>

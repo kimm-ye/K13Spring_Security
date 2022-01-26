@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd">
+	
+	
+	<!--  
+	시큐리티 2단계 : 로그인 화면 커스터마이징 하기
+	
+	intercept-url : 인증이 필요한 페이지의 요청명을 설정한다.
+		권한설정시 예외처리와 동일하게 좁은 권한을 먼저 설정하고 넓은 권한을 아래에
+		기술해야 한다.
+		pattern : URL 패턴을 이용해서 경로 및 파일명을 설정한다.
+		access : 접근권한을 결정한다.
+			permitAll : 권한없이 누구나 접근가능
+			hasRole(권한명) : 특정 권한을 획득했을때만 접근 가능
+			hasAnyRole(권한명1, 권한명2, ...) : 여러 권한 중 하나만 획득하면 접근가능
+			
+	form-login : 로그인 페이지를 커스터마이징 하기 위한 권한
+		login-page : 로그인 페이지의 요청명
+		default-target-url : 로그인 성공시 이동할 페이지의 요청명
+		authentication-failure-url : 로그인에 실패시 이동할 페이지의 요청명
+		login-processing-url : 로그인 폼에서 action 속성을 지정한다. 만약 지정하지 않으면
+			/login이 default 설정이 된다. 해당 요청명을 변경하고 싶다면 기술한다.
+		username-parameter : 로그인시 사용할 아이디 입력
+		password-parameter : 패스워드의 name속성
+		
+	logout
+		logout-url : 로그아웃에 사용할 요청명
+		logout-success-url : 로그아웃에 성공한 경우 이동할 요청명
+		
+	access-denied-handler
+		error-page : 로그인에 성공했으나 권한이 부족하여 접근할 수 없는
+		페이지로 이동했을때 보여질 요청명
+	-->
+	<security:http>
+		<security:intercept-url pattern="/security2/login.do" access="permitAll" />
+		<security:intercept-url pattern="/security2/admin/**" access="hasRole('ADMIN')" />
+		<security:intercept-url pattern="/security2/**" access="hasAnyRole('USER, ADMIN')" />
+		<security:intercept-url pattern="/**" access="permitAll" />
+			
+		<security:form-login 
+			login-page="/security2/login.do"
+			default-target-url="/security2/index.do"
+			authentication-failure-url="/security2/login.do?error"
+			login-processing-url="/myLoginAction"
+			username-parameter="id"
+			password-parameter="pass"
+		/>
+		<security:logout
+			logout-url="/security2/logout"
+			logout-success-url="/security2/index.do"
+		/>
+		<security:access-denied-handler
+			error-page="/security2/accessDenied.do"
+		/>
+	</security:http>
+	<!--  
+	해당 권한을 획득하기 위한 아이디/패스워드를 입력한다. 
+	"ROLE_"는 권한에 반드시 필요한 접두어이다.
+	-->
+	<security:authentication-manager>
+		<security:authentication-provider>
+			<security:user-service>
+				<security:user name="kosmo_user" password="1111" authorities="ROLE_USER"/> 
+				<security:user name="kosmo_admin" password="2222" authorities="ROLE_ADMIN"/> 
+			</security:user-service>			
+		</security:authentication-provider>
+	</security:authentication-manager>
+		
+</beans>

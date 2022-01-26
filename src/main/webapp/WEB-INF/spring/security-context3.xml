@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  
+	XML설정파일에서는 대표로 사용할 수 있는 네임스페이스를 지정하게 되는데
+	최초 상태에서는 beans가 대표로 되어 있다.
+	security를 대표로 만들어 주기 위해 아래 설정이 필요하다
+	xmlns:security ==> xmlns 로 변경 (여기서 ns는 namespace다)
+	xmlns ==> xmlns:beans 로 변경한다.
+	이처럼 설정한 후 <security:xxxx 속성에서 security: 을 제거하면 된다.
+	또한 <beans 앞에 beans: 를 시작과 끝 태그에 추가한다.
+-->
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd">
+	
+	<!--  
+	시큐리티 3단계 : 로그인을 JDBC 연동으로 커스터마이징 하기
+	
+	<http> 엘리먼트는 2단계와 동일하게 사용한다.
+	-->
+	<http>
+		<intercept-url pattern="/security2/login.do" access="permitAll" />
+		<intercept-url pattern="/security2/admin/**" access="hasRole('ADMIN')" />
+		<intercept-url pattern="/security2/**" access="hasAnyRole('USER, ADMIN')" />
+		<intercept-url pattern="/**" access="permitAll" />
+			
+		<form-login 
+			login-page="/security2/login.do"
+			default-target-url="/security2/index.do"
+			authentication-failure-url="/security2/login.do?error"
+			login-processing-url="/myLoginAction"
+			username-parameter="id"
+			password-parameter="pass"
+		/>
+		<logout
+			logout-url="/security2/logout"
+			logout-success-url="/security2/index.do"
+		/>
+		<access-denied-handler
+			error-page="/security2/accessDenied.do"
+		/>
+	</http>
+	<!--  
+		각 권한을 획득하기 위한 설정 부분
+		jdbc-user-service 
+			data-source-ref : 데이터베이스 연결을 나타내는 dataSource로 해당 빈은
+				root-context.xml에 생성해야 한다.
+			role-prefix : "ROLE_" 접두어를 지정하는 부분으로, 만약 해당 속성값을 
+				xml에 추가하는 경우 테이블에서는 ROLE_를 제외한 나머지 권한명을 
+				입력해야 한다. 즉 role-prefix를 쓰면 테이블 생성시 "ROLE_"를 쓰지 않아도 된다.
+			users-by-username-query : 아이디를 이용해서 사용자 정보를 가져오는 
+				쿼리문을 작성한다.
+			authorities-by-username-query : 아이디를 이용해서 권한정보를 가져오는
+				쿼리문을 작성한다.
+	-->
+	<authentication-manager>
+		<authentication-provider>
+			<jdbc-user-service 
+				data-source-ref="dataSource"
+				role-prefix=""
+				users-by-username-query="SELECT user_id, user_pw, enabled FROM security_admin WHERE user_id=? "
+				authorities-by-username-query="SELECT user_id, authority FROM security_admin WHERE user_id=? "
+				/>
+		</authentication-provider>
+	</authentication-manager>
+		
+</beans:beans>
